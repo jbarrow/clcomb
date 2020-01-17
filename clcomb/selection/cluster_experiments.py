@@ -1,0 +1,114 @@
+"""
+Script to gather experiment results.
+"""
+from argparse import ArgumentParser
+from pathlib import Path
+from collections import defaultdict
+from typing import Set, Tuple, List, Any, Dict
+from tqdm import tqdm
+from sklearn.cluster import SpectralClustering
+
+import numpy as np
+import csv
+
+EPSILON = 1e-6
+
+def get_experiment_from_config(config: Path) -> Path:
+    """ function to strip .json extension """
+    return Path(str(config)[:-len(config.suffix)])
+
+def read_trec_docs(trec_file: Path) -> List[str]:
+    docs: List[str] = []
+    with trec_file.open() as fp:
+        for line in fp:
+            docs.append(line.strip().split()[2])
+    return docs
+
+def jaccard_score(s1: Set[Any], s2: Set[Any]) -> float:
+    return 1. * len(s1 & s2) / (len(s1 | s2) + EPSILON)
+
+def pairwise_jaccard_scores(matchers: Dict[str, Set[Any]]) -> Tuple[List[str], np.array]:
+    matcher_names = list(matchers.keys())
+    t = len(matcher_names)
+    scores = np.zeros((t, t))
+
+    for i, m1 in tqdm(enumerate(matcher_names)):
+        s1 = matchers[m1]
+        for j, m2 in enumerate(matcher_names):
+            s2 = matchers[m2]
+            scores[i, j] = jaccard_score(s1, s2)
+
+    return matcher_names, scores
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('experiment_directories', type=Path)
+    parser.add_argument('--qrels', nargs='+', type=Path)
+    parser.add_argument('--output', type=Path)
+    args = parser.parse_args()
+
+    args.output.mkdir(parents=True, exist_ok=True)
+
+    queries: Set[Tuple[str, str]] = set([])
+    for qrels_file in args.qrels:
+        with qrels_file.open() as fp:
+            q0, d0 = fp.readline().strip().split()
+            if q0 != 'query_id':
+                queries.add((q0, d0))
+            for line in fp:
+                if not line.strip(): continue
+                q, d = line.strip().split()
+                queries.add((q, d))
+
+    matchers = defaultdict(set)
+
+    directories = []
+    with args.experiment_directories.open() as fp:
+        directories = [Path(l.strip()) for l in fp]
+
+    for experiment_directory in directories:
+        matcher = str(experiment_directory)
+        results = experiment_directory.glob('**/*.trec')
+
+        for query_file in results:
+            query = query_file.stem.split('-')[-1]
+            docs = set([(query, doc) for doc in read_trec_docs(query_file)])
+            correct_docs = docs & queries
+            matchers[matcher].update(correct_docs)
+
+    names, matrix = pairwise_jaccard_scores(matchers)
+    np.savetxt(args.output / 'output.txt', matrix, delimiter='\t')
+
+    with open(args.output / 'names.txt', 'w') as fp:
+        for name in names:
+            fp.write(name + '\n')
+
+    for i in range(3, 7):
+        clustering = SpectralClustering(n_clusters=i).fit(matrix)
+        clusters = defaultdict(list)
+        for name, label in zip(names, clustering.labels_):
+            clusters[label].append(name)
+
+        with open(args.output / f'clusters_{i}.txt', 'w') as fp:
+            for label, cluster in clusters.items():
+                fp.write('\t'.join(cluster))
+                fp.write('\n')
+
+"""
+So, what's the process here?
+
+    1. read in all the TREC files in UMD-CLIR-workQMDir.
+        => thankfully, this can be quickly done just by looking for *.trec
+        => check
+    2. read in the positive document names from the appropriate NIST-data folder
+        => check
+    3. for each matcher, compute an intersection of tuples (query_id, document_id)
+        => check
+    4. for each set of correct tuples, compute a pairwise Jaccard index
+        => check
+    5. output the pairwise Jaccard index as a matrix, which can be viewed using PCA on projector.tensorflow.org
+        => check
+    6. additionally, cluster the matchers using scikit-learn
+        => check
+"""
