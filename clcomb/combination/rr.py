@@ -1,15 +1,10 @@
 from argparse import ArgumentParser
 from typing import List, Dict, Tuple
-from embeddings import write_trec
 from collections import defaultdict
+from .util import read_trec, write_trec
 
 import pandas as pd
 
-
-def read_trec(file: str) -> pd.DataFrame:
-    return pd.read_csv(file, sep='\s+', header=None,
-        names=['query_id', 'Q0', 'document_id', 'rank', 'score', 'system'],
-        usecols=['query_id', 'document_id', 'rank', 'score'])
 
 def combine_query(query_scores: List[pd.DataFrame]) -> List[Tuple[str, float]]:
     docs = defaultdict(list)

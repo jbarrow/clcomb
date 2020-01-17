@@ -1,10 +1,11 @@
-from rr import read_trec, write_trec
 from typing import List, Tuple
 from argparse import ArgumentParser
 from collections import defaultdict
 from tqdm import tqdm
+from .util import read_trec, write_trec
 
 import pandas as pd
+
 
 eps = 1e-6
 
