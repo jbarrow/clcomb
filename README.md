@@ -43,5 +43,27 @@ This assumes that the system outputs to be combined are in TREC file format, and
 ## System Selection
 
 To do automatic system selection, you'll need to run the code in `clcomb.selection`.
+We have three ways of doing system selection, all described in the paper:
 
-`TODO [JOE]: Make the system selection code as usable as the evidence combination code, then document it here.`
+1. Automatic selection, whereby we cluster the systems into `K` clusters, and select the best-performing system from each cluster
+2. Stratified sampling selection, whereby we cluster the systems into `K` clusters, and randomly select a system from each cluster
+3. Random selection, whereby we randomly sample `N` systems
+
+Like above, the provided utilities are simple command-line utilities.
+For automatic selection, run:
+
+```
+python -m clcomb.selection.automatic --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] [--clusters [K]]
+```
+
+For stratified sampling selection, run:
+
+```
+python -m clcomb.selection.stratified --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] [--clusters [K]]
+```
+
+For random selection, run:
+
+```
+python -m clcomb.selection.random --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --systems [N]
+```

@@ -19,22 +19,7 @@ def rr_query(query_scores: List[pd.DataFrame]) -> List[Tuple[str, float]]:
         scores[document] = sum(rrs)
 
     return sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
-
-# def combine(systems: List[pd.DataFrame]) -> Dict[str, List[Tuple[str, float]]]:
-#     rankings = {}
-#     queries = defaultdict(list)
-#
-#     for system in systems:
-#
-#         for query, df in system.groupby('query_id'):
-#             queries[query].append(df)
-#
-#     for query, dfs in queries.items():
-#         rankings[query] = combine_query(dfs)
-#
-#     return rankings
-
+    
 
 if __name__ == '__main__':
     parser = ArgumentParser()
