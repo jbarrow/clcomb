@@ -20,7 +20,7 @@ def combine_query(query_scores: List[pd.DataFrame]) -> List[Tuple[str, float]]:
     return sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
 
-def combine(systems: List[pd.DataFrame]) -> pd.DataFrame:
+def combine(systems: List[pd.DataFrame]) -> Dict[str, List[Tuple[str, float]]]:
     rankings = {}
     queries = defaultdict(list)
 
