@@ -53,13 +53,13 @@ Like above, the provided utilities are simple command-line utilities.
 For automatic selection, run:
 
 ```
-python -m clcomb.selection.automatic --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --qrels [QRELS FILE] [--clusters [K]]
+python -m clcomb.selection.clustered --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --qrels [QRELS FILE] --sample best [--clusters [K]] 
 ```
 
 For stratified sampling selection, run:
 
 ```
-python -m clcomb.selection.stratified --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --qrels [QRELS FILE] [--clusters [K]]
+python -m clcomb.selection.clustered --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --qrels [QRELS FILE] --sample random [--clusters [K]]
 ```
 
 For random selection, run:
@@ -67,6 +67,16 @@ For random selection, run:
 ```
 python -m clcomb.selection.random --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --N [N]
 ```
+
+### How it Works
+
+So, what's the process here?
+
+1. for each system, find the correct returned documents -- a tuple of (document_id, query_id)
+2. for each set of correct tuples, compute a pairwise Jaccard score
+3. output the pairwise Jaccard index as a matrix (which can be viewed using PCA on [projector.tensorflow.org](projector.tensorflow.org))
+4. cluster the matrix
+5. sample from each cluster (the best system from each cluster for the automatic selector, or a random system for the stratified sampler)
 
 ## Analysis
 
