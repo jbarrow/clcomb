@@ -53,17 +53,38 @@ Like above, the provided utilities are simple command-line utilities.
 For automatic selection, run:
 
 ```
-python -m clcomb.selection.automatic --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] [--clusters [K]]
+python -m clcomb.selection.automatic --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --qrels [QRELS FILE] [--clusters [K]]
 ```
 
 For stratified sampling selection, run:
 
 ```
-python -m clcomb.selection.stratified --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] [--clusters [K]]
+python -m clcomb.selection.stratified --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --qrels [QRELS FILE] [--clusters [K]]
 ```
 
 For random selection, run:
 
 ```
 python -m clcomb.selection.random --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --systems [N]
+```
+
+## Analysis
+
+`TODO [JOE]: Begin writing/structuring the analysis code.`
+
+## Utilities
+
+The data in this paper was in a specific format, and the provided utilities (`gather_run.sh`, `generate_qrels.sh`) are to normalize that data format.
+If you're running this repo on the MATERIAL SCRIPTS system, you can use the utilities in the following way:
+
+**To Create a Single TREC File for a Single System**
+
+```
+bash ./utils/gather_run.sh [PATH TO CLIR RUN DIRECTORY]
+```
+
+**To Create a Single QREL File from a Build Pack**
+
+```
+bash ./utils/generate_qrels.sh [PATH TO RELEVANCE JUDGEMENTS]
 ```
