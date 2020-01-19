@@ -80,11 +80,11 @@ If you're running this repo on the MATERIAL SCRIPTS system, you can use the util
 **To Create a Single TREC File for a Single System**
 
 ```
-bash ./utils/gather_run.sh [PATH TO CLIR RUN DIRECTORY]
+bash ./utils/create_trec.sh [PATH TO CLIR RUN DIRECTORY] > [OUTPUT TREC FILE]
 ```
 
 **To Create a Single QREL File from a Build Pack**
 
 ```
-bash ./utils/generate_qrels.sh [PATH TO RELEVANCE JUDGEMENTS]
+bash ./utils/create_qrels.py [JUDGEMENTS 1] [JUDGEMENTS 2] ... [JUDGEMENTS N]
 ```
