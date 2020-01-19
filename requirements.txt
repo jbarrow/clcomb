@@ -1,3 +1,4 @@
 pandas
 pytrec_eval
 numpy
+scikit-learn
