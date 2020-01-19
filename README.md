@@ -86,5 +86,7 @@ bash ./utils/create_trec.sh [PATH TO CLIR RUN DIRECTORY] > [OUTPUT TREC FILE]
 **To Create a Single QREL File from a Build Pack**
 
 ```
-bash ./utils/create_qrels.py [JUDGEMENTS 1] [JUDGEMENTS 2] ... [JUDGEMENTS N]
+bash ./utils/create_qrels.py [JUDGEMENTS 1] [JUDGEMENTS 2] ... [JUDGEMENTS N] > [OUTPUT QRELS FILE]
 ```
+
+You can then use `trec_eval` as normal with the MATERIAL data.
