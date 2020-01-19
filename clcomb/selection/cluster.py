@@ -11,6 +11,7 @@ from sklearn.cluster import SpectralClustering
 import numpy as np
 import csv
 
+EPSILON = 1e-6
 
 def get_experiment_from_config(config: Path) -> Path:
     """ function to strip .json extension """
@@ -24,7 +25,7 @@ def read_trec_docs(trec_file: Path) -> List[str]:
     return docs
 
 def jaccard_score(s1: Set[Any], s2: Set[Any]) -> float:
-    return 1. * len(s1 & s2) / len(s1 | s2)
+    return 1. * len(s1 & s2) / (len(s1 | s2) + EPSILON)
 
 def pairwise_jaccard_scores(matchers: Dict[str, Set[Any]]) -> Tuple[List[str], np.array]:
     matcher_names = list(matchers.keys())
@@ -42,9 +43,12 @@ def pairwise_jaccard_scores(matchers: Dict[str, Set[Any]]) -> Tuple[List[str], n
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('experiment_directories', nargs='+', type=Path)
+    parser.add_argument('experiment_directories', type=Path)
     parser.add_argument('--qrels', nargs='+', type=Path)
+    parser.add_argument('--output', type=Path)
     args = parser.parse_args()
+
+    args.output.mkdir(parents=True, exist_ok=True)
 
     queries: Set[Tuple[str, str]] = set([])
     for qrels_file in args.qrels:
@@ -59,35 +63,37 @@ if __name__ == '__main__':
 
     matchers = defaultdict(set)
 
-    for experiment_directory in args.experiment_directories:
-        configs = list(experiment_directory.glob('*.json'))
-        for config in tqdm(configs):
-            experiment_directory = get_experiment_from_config(config)
-            results = experiment_directory.glob('**/*.trec')
-            matcher = config.stem
+    directories = []
+    with args.experiment_directories.open() as fp:
+        directories = [Path(l.strip()) for l in fp]
 
-            for query_file in results:
-                query = query_file.stem.split('-')[-1]
-                docs = set([(query, doc) for doc in read_trec_docs(query_file)])
-                correct_docs = docs & queries
-                matchers[matcher].update(correct_docs)
+    for experiment_directory in directories:
+        matcher = str(experiment_directory)
+        results = experiment_directory.glob('**/*.trec')
+
+        for query_file in results:
+            query = query_file.stem.split('-')[-1]
+            docs = set([(query, doc) for doc in read_trec_docs(query_file)])
+            correct_docs = docs & queries
+            matchers[matcher].update(correct_docs)
 
     names, matrix = pairwise_jaccard_scores(matchers)
-    np.savetxt('output.txt', matrix, delimiter='\t')
+    np.savetxt(args.output / 'output.txt', matrix, delimiter='\t')
 
-    with open('names.txt', 'w') as fp:
+    with open(args.output / 'names.txt', 'w') as fp:
         for name in names:
             fp.write(name + '\n')
 
-    clustering = SpectralClustering().fit(matrix)
-    clusters = defaultdict(list)
-    for name, label in zip(names, clustering.labels_):
-        clusters[label].append(name)
+    for i in range(3, 7):
+        clustering = SpectralClustering(n_clusters=i).fit(matrix)
+        clusters = defaultdict(list)
+        for name, label in zip(names, clustering.labels_):
+            clusters[label].append(name)
 
-    with open('clusters.txt', 'w') as fp:
-        for label, cluster in clusters.items():
-            fp.write('\t'.join(cluster))
-            fp.write('\n')
+        with open(args.output / f'clusters_{i}.txt', 'w') as fp:
+            for label, cluster in clusters.items():
+                fp.write('\t'.join(cluster))
+                fp.write('\n')
 
 """
 So, what's the process here?

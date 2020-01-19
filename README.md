@@ -65,7 +65,7 @@ python -m clcomb.selection.stratified --systems [TREC FILE 1] [TREC FILE 2] [TRE
 For random selection, run:
 
 ```
-python -m clcomb.selection.random --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --systems [N]
+python -m clcomb.selection.random --systems [TREC FILE 1] [TREC FILE 2] [TREC FILE 3] --N [N]
 ```
 
 ## Analysis

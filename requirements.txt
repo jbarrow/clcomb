@@ -1,2 +1,3 @@
 pandas
 pytrec_eval
+numpy
