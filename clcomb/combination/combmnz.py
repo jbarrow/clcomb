@@ -2,7 +2,7 @@ from typing import List, Tuple, Dict
 from argparse import ArgumentParser
 from collections import defaultdict
 from tqdm import tqdm
-from .util import read_trec, write_trec, combine
+from ..util import read_trec, write_trec, combine
 
 import pandas as pd
 
