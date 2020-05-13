@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('--systems', nargs='+', help='system files to select', type=Path)
     parser.add_argument('--qrels', help='relevance judgements', type=Path)
     parser.add_argument('--sample', help='method to sample from the clusters', choices=['best', 'random'])
-    parser.add_argument('--K', help='number of clusters', type=int)
+    parser.add_argument('--K', help='number of clusters', nargs='+', type=int)
     parser.add_argument('--metric', help='metric to use to select systems', type=str, default='map')
     args = parser.parse_args()
 
@@ -76,13 +76,13 @@ if __name__ == '__main__':
 
     scores: Dict[str, float] = {
         str(system): get_average_metric(evaluator, system, args.metric)
-        for system in args.systems
+        for system in tqdm(args.systems)
     }
 
     relevant_tuples = get_tuples(qrels)
 
     tuples = {}
-    for system in args.systems:
+    for system in tqdm(args.systems):
         key = str(system)
 
         with system.open() as fp:
@@ -93,11 +93,18 @@ if __name__ == '__main__':
 
     names, matrix = pairwise_jaccard_scores(tuples)
 
-    clusters = cluster(names, matrix, args.K)
+    for k in args.K:
+        samples = 1 if args.sample == 'best' else 10
 
-    for cluster in clusters.values():
-        if args.sample == 'best':
-            cluster_scores = [(system, scores[str(system)]) for system in cluster]
-            print(max(cluster_scores, key=lambda x: x[1])[0])
-        else:
-            print(random.choice(cluster))
+        for j in range(samples):
+            clusters = cluster(names, matrix, k)
+
+            with open('results/da_{}_{}_{}.txt'.format(args.sample, k, j+1), 'w') as fp:
+
+                for c in clusters.values():
+                    if args.sample == 'best':
+                        cluster_scores = [(system, scores[str(system)]) for system in c]
+                        fp.write(max(cluster_scores, key=lambda x: x[1])[0])
+                    else:
+                        fp.write(random.choice(c))
+                    fp.write('\n')
