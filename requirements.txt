@@ -1,4 +1,4 @@
 pandas
-pytrec_eval
 numpy
 scikit-learn
+git+https://github.com/jbarrow/pytrec_eval.git
