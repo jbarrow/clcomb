@@ -4,32 +4,12 @@ from collections import defaultdict
 from typing import Set, Tuple, List, Any, Dict
 from tqdm import tqdm
 from sklearn.cluster import SpectralClustering
+from .similarity import load_comparison
 
 import random
 import numpy as np
 import pytrec_eval
 import statistics
-
-
-EPSILON = 1e-6
-
-
-def jaccard_score(s1: Set[Any], s2: Set[Any]) -> float:
-    return 1. * len(s1 & s2) / (len(s1 | s2) + EPSILON)
-
-
-def pairwise_jaccard_scores(matchers: Dict[str, Set[Any]]) -> Tuple[List[str], np.array]:
-    matcher_names = list(matchers.keys())
-    t = len(matcher_names)
-    scores = np.zeros((t, t))
-
-    for i, m1 in tqdm(enumerate(matcher_names)):
-        s1 = matchers[m1]
-        for j, m2 in enumerate(matcher_names):
-            s2 = matchers[m2]
-            scores[i, j] = jaccard_score(s1, s2)
-
-    return matcher_names, scores
 
 
 def cluster(names: List[str], matrix: np.array, n_clusters: int) -> Dict[str, List[str]]:
@@ -67,6 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--sample', help='method to sample from the clusters', choices=['best', 'random'])
     parser.add_argument('--K', help='number of clusters', nargs='+', type=int)
     parser.add_argument('--metric', help='metric to use to select systems', type=str, default='map')
+    parser.add_argument('--comparison-model', help='directory that contains the comparison model', type=Path)
     args = parser.parse_args()
 
     with args.qrels.open() as fp:
@@ -91,7 +72,7 @@ if __name__ == '__main__':
         returned_tuples = get_tuples(run)
         tuples[key] = returned_tuples & relevant_tuples
 
-    names, matrix = pairwise_jaccard_scores(tuples)
+    names, matrix = load_comparison(args.comparison_model)
 
     for k in args.K:
         samples = 1 if args.sample == 'best' else 10

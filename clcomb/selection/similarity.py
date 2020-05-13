@@ -70,8 +70,8 @@ def spearman_correlation(a: TRECOutput, b: TRECOutput, join: str) -> np.array:
         documents_a = a[query]
         documents_b = b[query]
 
-        ranked_a = {doc: i+1 for i, (doc, _) in enumerate(sorted(a[query].items(), key=lambda x: x[1]))}
-        ranked_b = {doc: i+1 for i, (doc, _) in enumerate(sorted(b[query].items(), key=lambda x: x[1]))}
+        ranked_a = {doc: i+1 for i, (doc, _) in enumerate(sorted(a[query].items(), key=lambda x: x[1], reverse=True))}
+        ranked_b = {doc: i+1 for i, (doc, _) in enumerate(sorted(b[query].items(), key=lambda x: x[1], reverse=True))}
 
 
         if join == 'intersection':
@@ -114,9 +114,8 @@ def kendalls_tau(a: TRECOutput, b: TRECOutput, join: str) -> np.array:
         documents_a = a[query]
         documents_b = b[query]
 
-        ranked_a = {doc: i+1 for i, (doc, _) in enumerate(sorted(a[query].items(), key=lambda x: x[1]))}
-        ranked_b = {doc: i+1 for i, (doc, _) in enumerate(sorted(b[query].items(), key=lambda x: x[1]))}
-
+        ranked_a = {doc: i+1 for i, (doc, _) in enumerate(sorted(a[query].items(), key=lambda x: x[1], reverse=True))}
+        ranked_b = {doc: i+1 for i, (doc, _) in enumerate(sorted(b[query].items(), key=lambda x: x[1], reverse=True))}
 
         if join == 'intersection':
             documents = list(set(documents_a.keys()) & set(documents_b.keys()))
@@ -138,8 +137,31 @@ def kendalls_tau(a: TRECOutput, b: TRECOutput, join: str) -> np.array:
     return scores
 
 def cognitive_diversity(a: TRECOutput, b: TRECOutput, join: str) -> np.array:
-    return np.zeros(10)
 
+    # define the actual cognitive diversity calculation
+    def cd(f_a: np.array, f_b: np.array) -> float:
+        return np.sqrt(np.sum((f_a - f_b) ** 2))
+
+    # start by computing the union of all queries for which a and b have
+    # returned something
+    all_queries = set(a.keys()) | set(b.keys())
+    # initialize the output
+    scores = np.zeros(len(all_queries))
+
+    for i, query in enumerate(all_queries):
+        if query not in a or query not in b:
+            # if one of the system doesn't have output, score is automatically 0
+            scores[i] = 0.
+            continue
+
+        rsc_a = np.array([score for score in sorted(a[query].values(), reverse=True)])
+        rsc_b = np.array([score for score in sorted(b[query].values(), reverse=True)])
+
+        total = min(len(rsc_a), len(rsc_b))
+
+        scores[i] = cd(rsc_a[:total], rsc_b[:total])
+
+    return scores
 
 def jaccard_score(a: TRECOutput, b: TRECOutput, join: str) -> np.array:
     # start by computing the union of all queries for which a and b have
@@ -221,19 +243,40 @@ def pairwise_comparison(systems: Dict[str, TRECOutput],
     return matcher_names, scores
 
 
-def save_comparison():
-    pass
+def save_comparison(comparison: Tuple[List[str], np.array], output_dir: Path):
+    ix_file = output_dir / 'index.txt'
+    ar_file = output_dir / 'similarities.npy'
 
-def load_comparison():
-    pass
+    index, array = comparison
 
+    np.save(ar_file, array)
+
+    with ix_file.open('w') as fp:
+        for system in index:
+            fp.write(system)
+            fp.write('\n')
+
+def load_comparison(output_dir: Path) -> Tuple[List[str], np.array]:
+    ix_file = output_dir / 'index.txt'
+    ar_file = output_dir / 'similarities.npy'
+
+    array = np.load(ar_file)
+
+    with ix_file.open() as fp:
+        index = [line.strip() for line in fp]
+
+    return index, array
 
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--systems', nargs='+', help='system files to select', type=Path)
     parser.add_argument('--metric', help='which metric to compute', default='pearson', type=str)
     parser.add_argument('--join', help='how to join pairwise systems', default='intersection', type=str)
+    parser.add_argument('--output-dir', help='directory to save output', type=Path)
     args = parser.parse_args()
+
+    # create the output directory
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
     matchers = {}
 
@@ -245,4 +288,8 @@ if __name__ == '__main__':
 
         matchers[key] = run
 
-    print(pairwise_comparison(matchers, metric=args.metric, join=args.join))
+    comparison = pairwise_comparison(matchers, metric=args.metric, join=args.join)
+
+    save_comparison(comparison, args.output_dir)
+
+    print(load_comparison(args.output_dir))
