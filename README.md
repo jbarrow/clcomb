@@ -12,19 +12,23 @@ pip install -r requirements.txt
 
 Future versions of this repo will turn `clcomb` into a proper pip-installable python package, but that's further down the roadmap.
 
+## Score Normalization
+
+There are four different socre normalization techniques implemented in this repository:
+
+1. Reciprocal Rank (RR)
+2. Borda Counts
+3. Sum-to-One (STO)
+4. Min-Max
+
+Each of them have the same footprint (though you can also set technique-specific parameters).
+
 ## Combination
 
-There are three different post-retrieval evidence combination techniques implemented in this repository:
+There are two different post-retrieval evidence combination techniques implemented in this repository:
 
-1. Reciprocal Rank (RR) combination
-2. CombMNZ
-3. Borda Counts
-
-Each of them have the same footprint (though you can also set technique-specific parameters). For RR Combination, run:
-
-```
-python -m clcomb.combination.rr --systems [TREC FILE 1] [TREC FILE 2] ... [TREC FILE N] > [TREC OUTPUT]
-```
+1. CombMNZ
+2. CombSum
 
 For CombMNZ, run:
 
@@ -32,10 +36,10 @@ For CombMNZ, run:
 python -m clcomb.combination.combmnz --systems [TREC FILE 1] [TREC FILE 2] ... [TREC FILE N] > [TREC OUTPUT]
 ```
 
-For Borda Count, run:
+For CombSum, run:
 
 ```
-python -m clcomb.combination.borda --systems [TREC FILE 1] [TREC FILE 2] ... [TREC FILE N] > [TREC OUTPUT]
+python -m clcomb.combination.combsum --systems [TREC FILE 1] [TREC FILE 2] ... [TREC FILE N] > [TREC OUTPUT]
 ```
 
 This assumes that the system outputs to be combined are in TREC file format, and it generates a TREC formatted file.
@@ -46,8 +50,8 @@ To do automatic system selection, you'll need to run the code in `clcomb.selecti
 We have three ways of doing system selection, all described in the paper:
 
 1. Automatic selection, whereby we cluster the systems into `K` clusters, and select the best-performing system from each cluster
-2. Stratified sampling selection, whereby we cluster the systems into `K` clusters, and randomly select a system from each cluster
-3. Random selection, whereby we randomly sample `N` systems
+2. Top-K selection, whereby we select the top `K` systems on the development set.
+3. Random selection, whereby we randomly sample `K` systems.
 
 Like above, the provided utilities are simple command-line utilities.
 For automatic selection, run:
@@ -77,10 +81,6 @@ So, what's the process here?
 3. output the pairwise Jaccard index as a matrix (which can be viewed using PCA on [projector.tensorflow.org](projector.tensorflow.org))
 4. cluster the matrix
 5. sample from each cluster (the best system from each cluster for the automatic selector, or a random system for the stratified sampler)
-
-## Analysis
-
-`TODO [JOE]: Begin writing/structuring the analysis code.`
 
 ## Utilities
 
