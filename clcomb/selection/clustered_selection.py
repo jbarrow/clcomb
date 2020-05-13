@@ -48,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--K', help='number of clusters', nargs='+', type=int)
     parser.add_argument('--metric', help='metric to use to select systems', type=str, default='map')
     parser.add_argument('--comparison-model', help='directory that contains the comparison model', type=Path)
+    parser.add_argument('--output-dir', help='directory to output the selected systems to', type=Path)
     args = parser.parse_args()
 
     with args.qrels.open() as fp:
@@ -80,7 +81,10 @@ if __name__ == '__main__':
         for j in range(samples):
             clusters = cluster(names, matrix, k)
 
-            with open('results/da_{}_{}_{}.txt'.format(args.sample, k, j+1), 'w') as fp:
+            output_file = 'da_{}_{}_{}.txt'.format(args.sample, k, j+1)
+            output_file = args.output_dir / output_file
+
+            with output_file.open('w') as fp:
 
                 for c in clusters.values():
                     if args.sample == 'best':

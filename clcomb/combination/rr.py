@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from typing import List, Dict, Tuple
 from collections import defaultdict
-from ..util import read_trec, write_trec, combine
+from .util import read_trec, write_trec, combine
 from tqdm import tqdm
 
 import pandas as pd
