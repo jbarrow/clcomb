@@ -1,17 +1,19 @@
 #!/bin/bash
 
-INPUT=$1/*.trec
+input=$1/*.trec
 #~/Research/data/clcomb/eval/
-OUTPUT=$2
+output=$2
 #~/Research/data/clcomb/lt/eval_sto/
+method=$3
+# sto, minmax, rr, borda
 
-mkdir -p $OUTPUT
+mkdir -p $output
 
 cd ~/Research/software/clcomb/clcomb/normalization
 
-for file in $INPUT
+for file in $input
 do
   base="$(basename $file)"
   echo $base
-  python sto.py $file > $OUTPUT/$base
+  python $method.py $file > $output/$base
 done

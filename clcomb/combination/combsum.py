@@ -9,22 +9,16 @@ import pandas as pd
 
 eps = 1e-6
 
-def combmnz_query(query_scores: List[pd.DataFrame]) -> List[Tuple[str, float]]:
+def combsto_query(query_scores: List[pd.DataFrame]) -> List[Tuple[str, float]]:
     docs = defaultdict(list)
     scores = {}
 
     for system in query_scores:
-        #max_score = max(pd.to_numeric(system.score))
-        #min_score = min(pd.to_numeric(system.score))
-
-        #scorediff = max(max_score - min_score, eps)
-
         for row in system.itertuples():
-            #new_score = (row.score - min_score) / scorediff
             docs[row.document_id].append(row.score)
 
     for document, mnzs in docs.items():
-        scores[document] = sum(mnzs) * len(mnzs)
+        scores[document] = sum(mnzs)
 
     return sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
@@ -35,6 +29,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     scores = [read_trec(system) for system in tqdm(args.systems)]
-    combined = combine(scores, combmnz_query)
+    combined = combine(scores, combsto_query)
 
     print(write_trec(combined))
