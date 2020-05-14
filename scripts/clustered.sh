@@ -2,14 +2,16 @@
 
 metric=$1
 # cognitive_diversity, pearson, kendall, spearman, jaccard
+language=$2
+# sw, so, lt
 
-dev=~/Research/data/clcomb/lt/dev_sto/
-eval=~/Research/data/clcomb/lt/eval_sto/
+dev=~/Research/data/clcomb/${language}/dev_sto/
+eval=~/Research/data/clcomb/${language}/eval_sto/
 
-eval_qrels=paper/eval.qrels
-dev_qrels=paper/devanal.qrels
+dev_qrels=paper/qrels/${language}/dev.qrels
+eval_qrels=paper/qrels/${language}/eval.qrels
 
-output=~/Research/models/clcomb/lt/
+output=~/Research/models/clcomb/${language}/
 
 trec_eval=~/Software/trec_eval-9.0.7/trec_eval
 
@@ -38,7 +40,7 @@ do
   #systems=$(sed ':a;N;$!ba;s/\n/ /g ; s/dev_sto/eval_sto/g' results/lt/da_best_${i}_1.txt)
   systems=$(sed 's/dev_sto/eval_sto/g ; :a;N;$!ba;s/\n/ /g ; s/dev_sto/eval_sto/g' ${output}/${metric}/clusters/da_best_${i}_1.txt)
   echo $systems
-  python -m clcomb.combination.rr --systems $systems > ${output}/${metric}/combined/da_comb_$i.trec
+  python -m clcomb.combination.combmnz --systems $systems > ${output}/${metric}/combined/da_comb_$i.trec
 done
 
 # output the MAP scores for the eval results
