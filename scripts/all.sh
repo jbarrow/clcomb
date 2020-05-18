@@ -1,7 +1,10 @@
 #!/bin/bash
 
-eval=~/Research/data/clcomb/lt/eval_sto/
-eval_qrels=paper/eval.qrels
+language=$1
+metric="all"
+
+eval=~/Research/data/clcomb/${language}/eval_sto/
+eval_qrels=paper/qrels/${language}/eval.qrels
 
 output=~/Research/models/clcomb/lt/
 

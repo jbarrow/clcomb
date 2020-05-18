@@ -31,15 +31,6 @@ def get_average_metric(evaluator: pytrec_eval.RelevanceEvaluator,
     # return the average of the desired metric
     return statistics.mean([results[q][metric] for q in results.keys()])
 
-
-def get_tuples(run: Dict[str, Dict[str, float]]) -> Set[Tuple[str, str]]:
-    tuples = set([])
-    for query, documents in run.items():
-        for document in documents.keys():
-            tuples.add((query, document))
-    return tuples
-
-
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--systems', nargs='+', help='system files to select', type=Path)
@@ -60,18 +51,6 @@ if __name__ == '__main__':
         str(system): get_average_metric(evaluator, system, args.metric)
         for system in tqdm(args.systems)
     }
-
-    relevant_tuples = get_tuples(qrels)
-
-    tuples = {}
-    for system in tqdm(args.systems):
-        key = str(system)
-
-        with system.open() as fp:
-            run = pytrec_eval.parse_run(fp)
-
-        returned_tuples = get_tuples(run)
-        tuples[key] = returned_tuples & relevant_tuples
 
     names, matrix = load_comparison(args.comparison_model)
 
